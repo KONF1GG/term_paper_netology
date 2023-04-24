@@ -1,7 +1,6 @@
 import requests
 import json
 from private import secret
-from pprint import pprint
 
 def download_photos_from_vk(user_id, token_vk):
     response = requests.get(f"https://api.vk.com/method/photos.get?v=5.131&access_token={token_vk}&owner_id={user_id}&album_id=profile&photo_sizes=1&extended=1")
@@ -44,10 +43,9 @@ def save_vk_photos_to_yandex_disk(user_id, vk_token, yandex_token):
     print("Информация о фотографиях сохранена в файле vk_photos_info.json")
 
 if __name__=='__main__':
-    # user_id = input("Введите id пользователя VK: ")
-    # vk_token = input("Введите токен VK API: ")
-    # yandex_token = input("Введите токен Яндекс.Диска: ")
+    user_id = input("Введите id пользователя VK: ")
+    vk_token = input("Введите токен VK API: ")
+    yandex_token = input("Введите токен Яндекс.Диска: ")
 
-    save_vk_photos_to_yandex_disk(secret.id_vk, secret.TOKEN_vk, secret.TOKEN_YA)
+    save_vk_photos_to_yandex_disk(user_id, vk_token, yandex_token)
 
-    # pprint(download_photos_from_vk(secret.id_vk, secret.TOKEN_vk))
