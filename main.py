@@ -34,5 +34,22 @@ def save_photo_to_yandex_disk(photo, token):
 
     return {"file_name": file_name, "size": max_size["type"], "likes": likes}
 
+def save_vk_photos_to_yandex_disk(user_id, vk_token, yandex_token):
+    photos = download_photos_from_vk(user_id, vk_token)
+    results = []
+
+    for photo in photos:
+        result = save_photo_to_yandex_disk(photo, yandex_token)
+        results.append(result)
+
+    with open("vk_photos_info.json", "w", encoding="utf-8") as f:
+        json.dump(results, f, ensure_ascii=False, indent=2)
+
+    print("Информация о фотографиях сохранена в файле vk_photos_info.json")
+
 if __name__=='__main__':
-    pprint(download_photos_from_vk(secret.id_vk, secret.TOKEN_vk))
+    user_id = input("Введите id пользователя VK: ")
+    vk_token = input("Введите токен VK API: ")
+    yandex_token = input("Введите токен Яндекс.Диска: ")
+
+    save_vk_photos_to_yandex_disk(user_id, vk_token, yandex_token)
