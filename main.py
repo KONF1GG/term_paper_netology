@@ -7,18 +7,33 @@ def download_photos_from_vk(user_id, token_vk):
     photos = response.json()['response']['items']
     return photos
 
-def save_to_yandex_disk(token, url, file_name):
+def create_folder_on_yandex_disk(token, folder_name):
     headers = {"Authorization": f"OAuth {token}"}
-    params = {"path": f"/{file_name}", "url": url}
+    params = {"path": folder_name}
+    response = requests.put("https://cloud-api.yandex.net/v1/disk/resources", headers=headers, params=params)
+    return response.json()
+
+def save_to_yandex_disk(token, url, folder_name, file_name):
+    headers = {"Authorization": f"OAuth {token}"}
+
+    # проверим, есть ли папка на Яндекс.Диске
+    params = {"path": f"/{folder_name}/{file_name}"}
+    response = requests.put("https://cloud-api.yandex.net/v1/disk/resources/upload", headers=headers, params=params)
+    if response.status_code == 409:  # папка уже есть на Я.Диске
+        params = {"path": f"/{folder_name}/{file_name}", "url": url}
+    else:
+        create_folder_on_yandex_disk(yandex_token, folder_name)
+        params = {"path": f"/{folder_name}/{file_name}", "url": url}
     response = requests.post("https://cloud-api.yandex.net/v1/disk/resources/upload", headers=headers, params=params)
     return response.json()
 
 def save_vk_photos_to_yandex_disk(user_id, vk_token, yandex_token):
     photos = download_photos_from_vk(user_id, vk_token)
     results = []
+    unique_likes = []
+    folder_name = f"vk_photos_{user_id}"
 
     for photo in photos:
-        unique_likes = []
         photo_sizes = photo["sizes"]
         max_size = max(photo_sizes, key=lambda x: x['height'] * x['width'])
         url = max_size["url"]
@@ -28,7 +43,7 @@ def save_vk_photos_to_yandex_disk(user_id, vk_token, yandex_token):
         else:
             unique_likes.append(likes)
             file_name = f"{likes}.jpg"
-        response = save_to_yandex_disk(yandex_token, url, file_name)
+        response = save_to_yandex_disk(yandex_token, url, folder_name, file_name)
 
         if response.get("error"):
             print(f"Ошибка сохранения на Я.Диск: {response['error']}")
@@ -42,10 +57,12 @@ def save_vk_photos_to_yandex_disk(user_id, vk_token, yandex_token):
 
     print("Информация о фотографиях сохранена в файле vk_photos_info.json")
 
-if __name__=='__main__':
-    user_id = input("Введите id пользователя VK: ")
-    vk_token = input("Введите токен VK API: ")
-    yandex_token = input("Введите токен Яндекс.Диска: ")
+if __name__ == '__main__':
+    # user_id = input("Введите id пользователя VK: ")
+    # vk_token = input("Введите токен VK API: ")
+    # yandex_token = input("Введите токен Яндекс.Диска: ")
+    user_id = secret.id_vk
+    vk_token = secret.TOKEN_vk
+    yandex_token = secret.TOKEN_YA
 
     save_vk_photos_to_yandex_disk(user_id, vk_token, yandex_token)
-
